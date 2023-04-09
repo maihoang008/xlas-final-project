@@ -1,12 +1,26 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 10 04:16:26 2023
+
+@author: quanv
+"""
+
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy
 from PyQt6.QtGui import QPixmap, QTransform, QIcon
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QImage
+
 import sys, os
+import cv2
+import numpy as np
+
 
 class FileBrowser(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
+        self.image_path = None
+
 
     def initUI(self):
         self.setGeometry(300, 300, 800, 400)
@@ -62,8 +76,11 @@ class FileBrowser(QWidget):
         button1 = QPushButton('Browse', self)
         button1.clicked.connect(self.showDialog)
         button2 = QPushButton('Gaussian', self)
+        button2.clicked.connect(self.gaussian_filter)
         button3 = QPushButton('Max', self)
+        button3.clicked.connect(self.max_filter)
         button4 = QPushButton('Min', self)
+        button4.clicked.connect(self.min_filter)
 
         button1.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         button2.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
@@ -101,16 +118,78 @@ class FileBrowser(QWidget):
         scaled_pixmap = pixmap.scaledToHeight(self.image_label.height())
         self.image_label.setPixmap(scaled_pixmap)
         self.image_label_after.setPixmap(scaled_pixmap)
-
         self.show()
+    
+    
+
+    def min_filter(self):
+        if not self.image_path:
+            return
+        try:
+            image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
+            if image is None:
+                return
+            kernel = np.ones((5, 5), np.uint8)
+            erosion = cv2.erode(image, kernel, iterations=1)
+            qimg = QImage(erosion.data, erosion.shape[1], erosion.shape[0], QImage.Format.Format_RGB888)
+            pixmap = QPixmap.fromImage(qimg)
+            scaled_pixmap = pixmap.scaledToHeight(self.image_label_after.height())
+            self.image_label_after.setPixmap(scaled_pixmap)
+        except cv2.error as e:
+            print(f"Error processing image: {e}")
+
+        
+    def max_filter(self):
+        if not self.image_path:
+            return
+        image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
+        if image is None:
+            return
+        kernel = np.ones((5, 5), np.uint8)
+        dilation = cv2.dilate(image, kernel, iterations=1)
+        dilation_rgb = cv2.cvtColor(dilation, cv2.COLOR_GRAY2RGB) # Convert to RGB color space
+        qimg = QImage(dilation_rgb.data, dilation_rgb.shape[1], dilation_rgb.shape[0], QImage.Format.Format_RGB888)
+        pixmap = QPixmap.fromImage(qimg)
+        scaled_pixmap = pixmap.scaledToHeight(self.image_label_after.height())
+        self.image_label_after.setPixmap(scaled_pixmap)
+
+    
+    def gaussian_filter(self):
+        if not self.image_path:
+            return
+        image = cv2.imread(self.image_path)
+        if image is None:
+            return
+        gaussian = cv2.GaussianBlur(image, (5, 5), 0)
+        qimg = QImage(gaussian.data, gaussian.shape[1], gaussian.shape[0], QImage.Format.Format_RGB888)
+        pixmap = QPixmap.fromImage(qimg)
+        scaled_pixmap = pixmap.scaledToHeight(self.image_label_after.height())
+        self.image_label_after.setPixmap(scaled_pixmap)
+        self.image_label_after.adjustSize() #Thêm dòng này để hiển thị đúng kích thước ảnh
+
+    
+    def show_image_after(self, image):
+        if len(image.shape) == 2:  # Grayscale image
+            qimage = QImage(image.data, image.shape[1], image.shape[0],QImage.Format.Format_Grayscale8)
+        else:  # Color image
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            qimage = QImage(image.data, image.shape[1], image.shape[0], QImage.Format.Format_RGB888)
+        pixmap = QPixmap(qimage)
+        scaled_pixmap = pixmap.scaledToHeight(self.image_label_after.height())
+        self.image_label_after.setPixmap(scaled_pixmap)
+    
+
 
     def showDialog(self):
         fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/home', 'Images (*.png *.jpg)')
         if fname:
+            self.image_path = fname
             pixmap = QPixmap(fname)
             scaled_pixmap = pixmap.scaledToHeight(self.image_label.height())
             self.image_label.setPixmap(scaled_pixmap)
             self.image_label_after.setPixmap(scaled_pixmap)
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
