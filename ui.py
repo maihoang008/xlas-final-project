@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 10 04:16:26 2023
+
+@author: quanv
+"""
+
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy
 from PyQt6.QtGui import QPixmap, QTransform, QIcon
 from PyQt6.QtCore import Qt
@@ -107,6 +114,7 @@ class FileBrowser(QWidget):
         save_as_layout.addStretch()
 
         # Add four buttons to the layout
+<<<<<<< HEAD
         self.button1 = QPushButton('Browse', self)
         self.button1.clicked.connect(self.showDialog)
         self.button1.setStyleSheet(button_style)
@@ -119,6 +127,16 @@ class FileBrowser(QWidget):
         self.button4 = QPushButton('Min', self)
         self.button4.clicked.connect(self.min_filter)
         self.button4.setStyleSheet(button_style)
+=======
+        button1 = QPushButton('Browse', self)
+        button1.clicked.connect(self.showDialog)
+        button2 = QPushButton('Gaussian', self)
+        button2.clicked.connect(self.gaussian_filter)
+        button3 = QPushButton('Max', self)
+        button3.clicked.connect(self.max_filter)
+        button4 = QPushButton('Min', self)
+        button4.clicked.connect(self.min_filter)
+>>>>>>> 54f20becc4095b3d159b2dfe352077258ed32b37
 
         self.button1.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.button2.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
@@ -191,10 +209,13 @@ class FileBrowser(QWidget):
         scaled_pixmap = pixmap.scaledToHeight(self.image_label.height())
         self.image_label.setPixmap(scaled_pixmap)
         self.image_label_after.setPixmap(scaled_pixmap)
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> 54f20becc4095b3d159b2dfe352077258ed32b37
         self.show()
     
     
@@ -215,6 +236,7 @@ class FileBrowser(QWidget):
         except cv2.error as e:
             print(f"Error processing image: {e}")
 
+<<<<<<< HEAD
 
     def save_as(self):
         return "Not Implemented"
@@ -223,6 +245,9 @@ class FileBrowser(QWidget):
         return "Not Implemented"
 
 
+=======
+        
+>>>>>>> 54f20becc4095b3d159b2dfe352077258ed32b37
     def max_filter(self):
         if not self.image_path:
             return
@@ -261,6 +286,11 @@ class FileBrowser(QWidget):
         pixmap = QPixmap(qimage)
         scaled_pixmap = pixmap.scaledToHeight(self.image_label_after.height())
         self.image_label_after.setPixmap(scaled_pixmap)
+<<<<<<< HEAD
+=======
+    
+
+>>>>>>> 54f20becc4095b3d159b2dfe352077258ed32b37
 
     def showDialog(self):
         fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/home', 'Images (*.png *.jpg)')
@@ -271,12 +301,15 @@ class FileBrowser(QWidget):
             self.image_label.setPixmap(scaled_pixmap)
             self.image_label_after.setPixmap(scaled_pixmap)
 
+<<<<<<< HEAD
             # Enable back buttons
             self.button2.setEnabled(True)
             self.button3.setEnabled(True)
             self.button4.setEnabled(True)
             self.save_as_button.setEnabled(True)
             self.replace_button.setEnabled(True)
+=======
+>>>>>>> 54f20becc4095b3d159b2dfe352077258ed32b37
 
 
 if __name__ == '__main__':
