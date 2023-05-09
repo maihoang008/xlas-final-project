@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QSlider, QWidget, QPushButton, QFileDialog, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QComboBox
 from PyQt6.QtGui import QPixmap, QTransform, QIcon
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QImage
@@ -7,33 +7,24 @@ import sys, os
 import cv2
 import numpy as np
 
-
 class FileBrowser(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
         self.image_path = None
 
+    
 
     def initUI(self):
-        self.setGeometry(300, 300, 800, 400)
-        self.setWindowTitle('File Browser')
-        self.setWindowIcon(QIcon('icon.png'))
-        self.setStyleSheet("background-color: black;")
+        
 
         # Banner label
         self.banner_label = QLabel(self)
         # Load the banner pixmap
         banner_pixmap = QPixmap("banner.png")
-        
-        # Scale the banner pixmap to the window's width while maintaining its aspect ratio
-        scaled_banner_pixmap = banner_pixmap.scaled(self.width(), banner_pixmap.height(), Qt.AspectRatioMode.KeepAspectRatio)
-        
+        # Scale the banner pixmap to the window's width while maintaining its aspect ratio        
         # Set the scaled banner pixmap to the banner label
-        self.banner_label.setPixmap(scaled_banner_pixmap)
-
-
-
+        self.banner_label.setPixmap(banner_pixmap)
         # Horizontal layout for banner and text
         header_layout = QHBoxLayout()
         header_layout.addWidget(self.banner_label)
@@ -42,7 +33,7 @@ class FileBrowser(QWidget):
         self.file_label = QLabel('', self)
         self.file_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.file_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.banner_label.setScaledContents(True) # Set scaledContents to True
+        self.banner_label.setScaledContents(True) 
 
         # Image label
         self.image_label = QLabel(self)
@@ -87,48 +78,48 @@ class FileBrowser(QWidget):
             }
         """
         # Replace Origin and Save As button Layout
-        save_as_layout = QVBoxLayout()
+        save_as_layout = QHBoxLayout()
+        self.slider_label = QLabel(self)
+        
+        self.slider = QSlider(Qt.Orientation.Horizontal, self)
+        self.slider.setMinimum(1)
+        self.slider.setMaximum(5)
+        self.slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.slider.valueChanged.connect(self.slide)
+        self.slider.valueChanged.connect(self.combo)
+        self.slider.setEnabled(False)
+        
         self.replace_button = QPushButton('Replace Origin', self)
         self.replace_button.clicked.connect(self.replace_origin)
         self.replace_button.setStyleSheet(button_style)
         self.replace_button.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        
         self.save_as_button = QPushButton('Save as', self)
         self.save_as_button.clicked.connect(self.save_as)
         self.save_as_button.setStyleSheet(button_style)
         self.save_as_button.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        or_label = QLabel('Or', self)
-        or_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        or_label.setStyleSheet("color: white;")
-
-        save_as_layout.addStretch()
-        save_as_layout.addWidget(self.replace_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        save_as_layout.addWidget(or_label)
-        save_as_layout.addWidget(self.save_as_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        save_as_layout.addStretch()
+        
+        save_as_layout.addWidget(self.slider_label, alignment=Qt.AlignmentFlag.AlignBottom)
+        save_as_layout.addWidget(self.slider, alignment=Qt.AlignmentFlag.AlignCenter)
+        save_as_layout.addWidget(self.replace_button)
+        save_as_layout.addWidget(self.save_as_button)
 
         # Add four buttons to the layout
         self.button1 = QPushButton('Browse', self)
         self.button1.clicked.connect(self.showDialog)
-        self.button1.setStyleSheet(button_style)
-        self.button2 = QPushButton('Gaussian', self)
-        self.button2.clicked.connect(self.gaussian_filter)
-        self.button2.setStyleSheet(button_style)
-        self.button3 = QPushButton('Max', self)
-        self.button3.clicked.connect(self.max_filter)
-        self.button3.setStyleSheet(button_style)
-        self.button4 = QPushButton('Min', self)
-        self.button4.clicked.connect(self.min_filter)
-        self.button4.setStyleSheet(button_style)
-
-        self.button1.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        self.button2.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        self.button3.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        self.button4.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        
+        #Them chuc nang o day
+        self.comboBox = QComboBox(self)
+        self.comboBox.addItems(["Gaussian", "Max", "Min"])
+        self.comboBox.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        
+        self.submit = QPushButton('Submit', self)
+        self.submit.clicked.connect(self.combo)
+        self.submit.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
         # Disable the first time user open the app
-        self.button2.setEnabled(False)
-        self.button3.setEnabled(False)
-        self.button4.setEnabled(False)
+        self.comboBox.setEnabled(False)
+        self.submit.setEnabled(False)
         self.save_as_button.setEnabled(False)
         self.replace_button.setEnabled(False)
 
@@ -149,9 +140,9 @@ class FileBrowser(QWidget):
 
         # Layout for Gaussian, Max, and Min buttons
         button_layout = QHBoxLayout()
-        button_layout.addWidget(self.button2)
-        button_layout.addWidget(self.button3)
-        button_layout.addWidget(self.button4)
+        button_layout.addWidget(self.comboBox)
+        button_layout.addWidget(self.submit)
+        
 
         # Layout for filter with label
         filter_layout = QVBoxLayout()
@@ -162,7 +153,8 @@ class FileBrowser(QWidget):
         hbox2 = QHBoxLayout()
         hbox2.addLayout(browse_layout)
         hbox2.addLayout(filter_layout)
-        hbox2.setSpacing(20)
+        hbox2.addLayout(save_as_layout)
+        hbox2.setSpacing(10)
 
         # Create a horizontal layout for the image labels
         image_layout = QHBoxLayout()
@@ -194,11 +186,25 @@ class FileBrowser(QWidget):
 
 
 
-
+        self.showMaximized()
+        self.setWindowTitle('Final project')
         self.show()
     
     
-
+    def slide(self):
+        
+        self.slider_label.setText("Value: "+str(self.sender().value()))
+    
+    def combo(self):
+        self.slider.setEnabled(True)
+        print(self.sender().value())
+        if self.comboBox.currentIndex()==0:
+            self.gaussian_filter(self.sender().value())
+        elif self.comboBox.currentIndex()==1:
+            self.max_filter()
+        elif self.comboBox.currentIndex()==2:
+            self.min_filter()
+    
     def min_filter(self):
         if not self.image_path:
             return
@@ -265,13 +271,14 @@ class FileBrowser(QWidget):
         self.image_label_after.setPixmap(scaled_pixmap)
 
     
-    def gaussian_filter(self):
+    def gaussian_filter(self, k = 5):
         if not self.image_path:
             return
         image = cv2.imread(self.image_path)
+        image = cv2.resize(image, (300,300))
         if image is None:
             return
-        gaussian = cv2.GaussianBlur(image, (5, 5), 0)
+        gaussian = cv2.GaussianBlur(image, (k, k), 0)
         qimg = QImage(gaussian.data, gaussian.shape[1], gaussian.shape[0], QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(qimg)
         scaled_pixmap = pixmap.scaledToHeight(self.image_label_after.height())
@@ -290,7 +297,7 @@ class FileBrowser(QWidget):
         self.image_label_after.setPixmap(scaled_pixmap)
 
     def showDialog(self):
-        fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/home', 'Images (*.png *.jpg)')
+        fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/Users/asus/OneDrive/Pictures', 'Images (*.png *.jpg)')
         if fname:
             self.image_path = fname
             pixmap = QPixmap(fname)
@@ -299,9 +306,8 @@ class FileBrowser(QWidget):
             self.image_label_after.setPixmap(scaled_pixmap)
 
             # Enable back buttons
-            self.button2.setEnabled(True)
-            self.button3.setEnabled(True)
-            self.button4.setEnabled(True)
+            self.comboBox.setEnabled(True)
+            self.submit.setEnabled(True)
             self.save_as_button.setEnabled(True)
             self.replace_button.setEnabled(True)
 
